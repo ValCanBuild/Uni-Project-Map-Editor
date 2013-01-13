@@ -27,11 +27,9 @@ public class TileController : MonoBehaviour {
 	
 	public void OrganizeTiles(){
 		foreach (Transform tile in transform){
-			if (tile.name.Contains("StartLevelTile"))
+			if ((!tile.name.Contains("RegularTile")) && !tile.name.Contains("UnWalkableTile"))
 				continue;
-			if (tile.name.Contains("SlipperyTile")){
-				continue;	
-			}
+			
 			switch (GetTileType(tile)){
 			case tileType_t.INNER:
 				if (tile.name.Contains("RegularTile")){
