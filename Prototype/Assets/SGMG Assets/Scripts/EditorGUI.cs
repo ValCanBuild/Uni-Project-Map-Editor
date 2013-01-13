@@ -79,9 +79,9 @@ public class EditorGUI : MonoBehaviour {
 		if (GUI.Button (new Rect (10, 45, 100, 75), "Export Map")){
 			if (mapName.Length < 1)
 				return;
-			if (!Directory.Exists(Application.persistentDataPath + "/MyMaps/"))
-				Directory.CreateDirectory(Application.persistentDataPath + "/MyMaps");
-			mapPath = Application.persistentDataPath + "/MyMaps/" + mapName + ".sgmg";
+			if (!Directory.Exists(Application.dataPath + "/MyMaps/"))
+				Directory.CreateDirectory(Application.dataPath + "/MyMaps");
+			mapPath = Application.dataPath + "/MyMaps/" + mapName + ".sgmg";
 			if (mapPath.Length != 0){
         		TextWriter f = new StreamWriter(mapPath);
 				
