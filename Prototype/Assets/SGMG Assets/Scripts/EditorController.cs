@@ -5,20 +5,22 @@ public enum buildMode_t{REGULAR,PATROL_POINTS};
 
 public class EditorController : MonoBehaviour
 {
-	public float		size = 1.0f;	
-	
-	public Transform 	mapParent;
-	
-	public EditorGUI	guiController;
-	
-	public buildMode_t	buildMode;
-	
-	private GameObject	currentTile;
-	private MovingTile	movingTile;
-	private Hashtable 	table;
+	public float			size = 1.0f;	
+							
+	public Transform 		mapParent;
+							
+	public EditorGUI		guiController;
+							
+	public buildMode_t		buildMode;
+							
+	private GameObject		currentTile;
+	private MovingTile		movingTile;
+	private Hashtable 		table;
+	private TileController	tileController;
 	// Use this for initialization
 	void Start ()
 	{		
+		tileController = mapParent.GetComponent<TileController>();
 		table = new Hashtable();
 		GameObject startTile = GameObject.FindGameObjectWithTag("StartTile");
 		if (startTile){
@@ -60,6 +62,9 @@ public class EditorController : MonoBehaviour
 			movingTile = currentTile.GetComponent<MovingTile>();
 			movingTile = Instantiate(movingTile) as MovingTile;
 			buildMode = buildMode_t.PATROL_POINTS;
+		}
+		else{
+			tileController.OrganizeTiles();	
 		}
 	}
 	

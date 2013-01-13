@@ -21,6 +21,8 @@ public class EditorGUI : MonoBehaviour {
 	private int			newSelectionGrid = 0;
 	
 	private string 		mapName = "Map Name";
+	private string		mapPath = "";
+	private bool		mapExported = false;
 
 	// Use this for initialization
 	void Start () {
@@ -70,44 +72,51 @@ public class EditorGUI : MonoBehaviour {
 	}
 	
 	private void ExportGUI(){
+		if (mapExported)
+			GUI.Label(new Rect(10, 120, 150, 100),"Map Exported to " + mapPath);
+		
 		mapName = GUI.TextField(new Rect(10,10,100,30),mapName);
 		if (GUI.Button (new Rect (10, 45, 100, 75), "Export Map")){
 			if (mapName.Length < 1)
 				return;
-			string path = "D:/Valentin/Desktop/Dropbox/Dynamo Games - Innovating F2P. ProfP/Demos/Maps/" + mapName + ".sgmg";
-			if (path.Length != 0){
-        	TextWriter f = new StreamWriter(path);
-			
-			foreach (Transform child in controller.mapParent.transform){
+			if (!Directory.Exists(Application.persistentDataPath + "/MyMaps/"))
+				Directory.CreateDirectory(Application.persistentDataPath + "/MyMaps");
+			mapPath = Application.persistentDataPath + "/MyMaps/" + mapName + ".sgmg";
+			if (mapPath.Length != 0){
+        		TextWriter f = new StreamWriter(mapPath);
 				
-				if (child.name.Contains("(Clone)")){
-					child.name = child.name.Replace("(Clone)","");
-				}
-				f.WriteLine(child.position.x + "\t" + child.position.y + "\t" + child.position.z + "\t" + child.name);
-				if (child.name.Equals("MovingTile")){
-					MovingTile movingTile = child.gameObject.GetComponent<MovingTile>();
-					//if moving tile has any patrol points - write them to a new line
-					if (movingTile.patrolPoints.Count > 1){
-						for (int i = 0; i < movingTile.patrolPoints.Count; i++){							
-							f.Write(movingTile.patrolPoints[i].x + "," + movingTile.patrolPoints[i].y + "," + movingTile.patrolPoints[i].z);
-							if (i != movingTile.patrolPoints.Count-1){
-								f.Write("\t");	
-							}							
+				foreach (Transform child in controller.mapParent.transform){
+					
+					if (child.name.Contains("(Clone)")){
+						child.name = child.name.Replace("(Clone)","");
+					}
+					f.WriteLine(child.position.x + "\t" + child.position.y + "\t" + child.position.z + "\t" + child.name);
+					if (child.name.Equals("MovingTile")){
+						MovingTile movingTile = child.gameObject.GetComponent<MovingTile>();
+						//if moving tile has any patrol points - write them to a new line
+						if (movingTile.patrolPoints.Count > 1){
+							for (int i = 0; i < movingTile.patrolPoints.Count; i++){							
+								f.Write(movingTile.patrolPoints[i].x + "," + movingTile.patrolPoints[i].y + "," + movingTile.patrolPoints[i].z);
+								if (i != movingTile.patrolPoints.Count-1){
+									f.Write("\t");	
+								}							
+							}
 						}
+						//else if it hasn't any set - just put it's original place as the one point
+						else{
+							f.Write(child.position.x + "," + child.position.y + "," + child.position.z);
+						}
+						f.WriteLine();
 					}
-					//else if it hasn't any set - just put it's original place as the one point
-					else{
-						f.Write(child.position.x + "," + child.position.y + "," + child.position.z);
-					}
-					f.WriteLine();
 				}
-			}
-			
-			f.Close();
-			f = null;
 				
-			Debug.Log("Map successfuly exported as: " + path);
-		}
+				f.Close();
+				f = null;
+					
+				Debug.Log("Map successfuly exported as: " + mapPath);
+				mapExported = true;
+				
+			}	
 		}
 	}
 	
