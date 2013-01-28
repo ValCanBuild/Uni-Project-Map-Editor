@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections;
+using System.IO;
 
 public enum buildMode_t{REGULAR,PATROL_POINTS};
 
@@ -84,8 +85,12 @@ public class EditorController : MonoBehaviour
 		Vector3 pos = GetMousePosInGrid();
 			movingTile.transform.position = pos;
 			if (Input.GetKey(KeyCode.A)){
-				if (table.Contains(pos))
+				if (table.Contains(pos)){
 					return;
+				}
+				if (!currentTile.GetComponent<MovingTile>().IsLegalPatrolPoint(pos)){
+					return;
+				}
 				currentTile.GetComponent<MovingTile>().patrolPoints.Add(pos);
 				MovingTile patrolLoc = Instantiate(movingTile,pos,Quaternion.identity) as MovingTile;
 				patrolLoc.HalfAlpha();
@@ -120,6 +125,59 @@ public class EditorController : MonoBehaviour
 		float xCoord = Mathf.Floor(mousePos.x/size)*size + size/2.0f;
 		float zCoord = Mathf.Floor(mousePos.z/size)*size + size/2.0f;
 		return new Vector3(xCoord,0.0f,zCoord);	
+	}
+	
+	
+	public void ImportMap(string path){
+		TextReader r = new StreamReader(path);
+
+		for (int i = 0; i < mapParent.childCount; i++){
+			Transform child = mapParent.GetChild(i);
+			table.Remove(child.position);
+			Destroy(child.gameObject);				
+		}
+		
+		table.Clear();
+		
+		while (true){
+			string line = r.ReadLine();
+	        if (line != null){
+				string[] text = line.Split(new char[]{'\t'});
+				//GET TILE POSITION AND ADD TO PARENT AND HASH TABLE
+				Vector3 position = new Vector3(float.Parse(text[0]),float.Parse(text[1]),float.Parse(text[2]));
+				string tileType = text[3];	
+				GameObject tileObject = Resources.Load(tileType) as GameObject;
+				tileObject = Instantiate(tileObject,position,Quaternion.identity) as GameObject;
+				tileObject.transform.parent = mapParent;
+				table.Add(tileObject.transform.position,tileObject);	
+				//IF TILE HAS ANY SPECIFIC PROPERTIES - ADD THEM HERE
+				//if moving tile - add patrol coordinates to it - they are on the next line
+				if (tileType.Equals("MovingTile")){
+					MovingTile newMovingTile = tileObject.GetComponent<MovingTile>();
+					line = r.ReadLine();
+					text = line.Split(new char[]{'\t'});
+					for (int i = 0; i < text.Length; i++){
+						string vector = text[i];
+						string[] xyz = vector.Split(new char[]{','});
+						Vector3 patrolP = new Vector3(float.Parse(xyz[0]),float.Parse(xyz[1]),float.Parse(xyz[2]));
+						newMovingTile.patrolPoints.Add(patrolP);
+						if (!table.Contains(patrolP)){
+							MovingTile patrolLoc = Instantiate(newMovingTile,patrolP,Quaternion.identity) as MovingTile;
+							patrolLoc.HalfAlpha();
+							table.Add(patrolP,patrolLoc.gameObject);
+						}
+					}
+				}
+	        }
+			else{
+				break;	
+			}
+		}
+					
+		r.Close();
+		r = null;
+		Debug.Log("Map successfuly imported");
+		tileController.OrganizeTiles();	
 	}
 }
 
