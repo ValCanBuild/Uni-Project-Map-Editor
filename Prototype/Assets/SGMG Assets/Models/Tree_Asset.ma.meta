@@ -1,8 +1,8 @@
 fileFormatVersion: 2
-guid: 54486b6faeb474b4daf0c0d4f6a48b13
+guid: dff66322c966a24409b8493400854680
 ModelImporter:
   fileIDToRecycleName:
-    4300000: pCube1
+    4300000: pPlane1
   serializedVersion: 10
   materials:
     importMaterials: 1
@@ -20,7 +20,7 @@ ModelImporter:
     clipAnimations: []
   meshes:
     lODScreenPercentages: []
-    globalScale: .00999999978
+    globalScale: 1
     meshCompression: 0
     addColliders: 0
     swapUVChannels: 0

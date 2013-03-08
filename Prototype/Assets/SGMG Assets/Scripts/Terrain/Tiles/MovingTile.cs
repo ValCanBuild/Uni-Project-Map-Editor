@@ -21,10 +21,10 @@ public class MovingTile : Tile {
 	}
 	
 	public bool IsLegalPatrolPoint(Vector3 point){
-		Vector3 lastPatrolPoint = patrolPoints[patrolPoints.Count-1];
-		Vector3 referenceRight= Vector3.Cross(Vector3.up, lastPatrolPoint);
+		//Vector3 lastPatrolPoint = patrolPoints[patrolPoints.Count-1];
+		//Vector3 referenceRight= Vector3.Cross(Vector3.up, lastPatrolPoint);
 		
-		float angle = Vector3.Angle(lastPatrolPoint,point);
+		//float angle = Vector3.Angle(lastPatrolPoint,point);
 		
 		//if (angle != 90.0f && angle != 180.0f && angle != 270.0f && angle != 0.0f && angle != 360.0f){
 			//return false;	

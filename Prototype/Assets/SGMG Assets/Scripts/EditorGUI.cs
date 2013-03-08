@@ -6,17 +6,14 @@ public class EditorGUI : MonoBehaviour {
 	
 	public static int GUILayerMask = 1 << 12;
 	
-	public GUIContent[]	tiles;	//gui content tile tooltip must be the same name as the tile prefab 
-	
-	public GUIContent[]	hazards;	//gui content tile tooltip must be the same name as the tile prefab 
+	public GUIContent[]	tiles;	//gui content tile tooltip must be the same name as the tile prefab 	
+	public GUIContent[]	hazards;	//gui content tile tooltip must be the same name as the hazard prefab 
+	public GUIContent[]	props;	
 	
 	private GameObject	currentTile;
 	
 	public EditorController controller;
 	public CameraController	cameraController;
-	
-	private string			tilePath = "Tiles/";
-	private string			hazardPath = "Hazards/";
 	
 	//button variables	
 	private bool		pickingBuildType = false;
@@ -29,10 +26,7 @@ public class EditorGUI : MonoBehaviour {
 	
 	private string 		exportMapName = "Map Name";
 	private string		exportMapPath = "";
-	private bool		mapExported = false;
-	
-	private string		mapFolderPath;
-	
+	private bool		mapExported = false;	
 	
 	//For map importing
 	private bool		importActive = false;
@@ -43,10 +37,7 @@ public class EditorGUI : MonoBehaviour {
 	
 	// Use this for initialization
 	void Start () {
-		mapFolderPath = Application.dataPath + "/MyMaps/";
 		contentToDisplay = tiles;
-		if (!Directory.Exists(mapFolderPath))
-			Directory.CreateDirectory(mapFolderPath);
 	}
 	
 	// Update is called once per frame
@@ -64,21 +55,22 @@ public class EditorGUI : MonoBehaviour {
 		if (cameraController.mCameraType != cameraType_t.BUILDVIEW)
 			return;
 		switch (controller.buildMode){
-			case buildMode_t.REGULAR:
-			case buildMode_t.HAZARD:
-				SelectionGUI();
-				ExportGUI();
-				ImportGUI();
-				break;
-			case buildMode_t.PATROL_POINTS:
-				PatrolPointGUI();
-				break;			
+		case buildMode_t.REGULAR:
+		case buildMode_t.HAZARD:
+		case buildMode_t.PROPS:
+			SelectionGUI();
+			ExportGUI();
+			ImportGUI();
+			break;
+		case buildMode_t.PATROL_POINTS:
+			PatrolPointGUI();
+			break;			
 		}		
 		
 	}
 	
 	private void CameraSwitchGUI(){
-		if (GUI.Button (new Rect (Screen.width/2+100, Screen.height-50, 150, 50), "Switch Camera")) {
+		if (GUI.Button (new Rect (Screen.width/2-70, 0, 150, 50), "Switch Camera")) {
 			cameraController.SwitchMode();
 		}
 	}
@@ -101,16 +93,21 @@ public class EditorGUI : MonoBehaviour {
 		}
 		else{
 			if (pickingBuildType){
-				if (GUI.Button (new Rect (Screen.width/2-70, Screen.height-40, 60, 40), "Tiles")) {
+				if (GUI.Button (new Rect (Screen.width/2-30, Screen.height-30, 60, 30), "Tiles")) {
 					contentToDisplay = tiles;
-					pickingBuildType = false;
 					controller.SwitchMode(buildMode_t.REGULAR);
-				}
-				if (GUI.Button (new Rect (Screen.width/2, Screen.height-40, 60, 40), "Hazards")) {
-					contentToDisplay = hazards;
 					pickingBuildType = false;
-					controller.SwitchMode(buildMode_t.HAZARD);
 				}
+				if (GUI.Button (new Rect (Screen.width/2-30, Screen.height-65, 60, 30), "Hazards")) {
+					contentToDisplay = hazards;
+					controller.SwitchMode(buildMode_t.HAZARD);
+					pickingBuildType = false;
+				}
+				if (GUI.Button (new Rect (Screen.width/2-30, Screen.height-100, 60, 30), "Props")) {
+					contentToDisplay = props;					
+					controller.SwitchMode(buildMode_t.PROPS);
+					pickingBuildType = false;
+				}				
 			}
 			else{
 				newSelectionGrid = GUI.SelectionGrid (new Rect (Screen.width/2-110, Screen.height-100, 230, 100), newSelectionGrid, contentToDisplay, 2);
@@ -125,60 +122,17 @@ public class EditorGUI : MonoBehaviour {
 		
 		exportMapName = GUI.TextField(new Rect(10,10,100,30),exportMapName);
 		if (GUI.Button (new Rect (10, 45, 80, 40), "Export Map")){
-			if (exportMapName.Length < 1)
-				return;
-			exportMapPath = mapFolderPath + exportMapName + ".txt";
-			if (exportMapPath.Length != 0){
-        		TextWriter f = new StreamWriter(exportMapPath);
-				
-				foreach (Transform child in controller.mapParent.transform){
-					
-					if (child.name.Contains("(Clone)")){
-						child.name = child.name.Replace("(Clone)","");
-					}
-					//if child has a tag(e.g. StartTile or EndTile - write it at the end)
-					if (!child.tag.Equals("Untagged")){
-						f.WriteLine(child.position.x + "\t" + child.position.y + "\t" + child.position.z + "\t" + child.name + "\t" + child.tag);
-					}
-					else
-						f.WriteLine(child.position.x + "\t" + child.position.y + "\t" + child.position.z + "\t" + child.name);
-					if (child.name.Equals("MovingTile")){
-						MovingTile movingTile = child.gameObject.GetComponent<MovingTile>();
-						//if moving tile has any patrol points - write them to a new line
-						if (movingTile.patrolPoints.Count > 1){
-							for (int i = 0; i < movingTile.patrolPoints.Count; i++){							
-								f.Write(movingTile.patrolPoints[i].x + "," + movingTile.patrolPoints[i].y + "," + movingTile.patrolPoints[i].z);
-								if (i != movingTile.patrolPoints.Count-1){
-									f.Write("\t");	
-								}							
-							}
-						}
-						//else if it hasn't any set - just put it's original place as the one point
-						else{
-							f.Write(child.position.x + "," + child.position.y + "," + child.position.z);
-						}
-						f.WriteLine();
-					}
-					else if (child.name.Equals("Wind")){
-						Wind wind = child.gameObject.GetComponent<Wind>();	
-						f.Write(wind.range + "," + wind.direction + "\n");
-					}					
-				}
-				
-				f.Close();
-				f = null;
-					
-				Debug.Log("Map successfuly exported as: " + exportMapPath);
-				mapExported = true;
-				
-			}	
+			exportMapPath = MapIO.ExportMap(exportMapName,controller.mapParent);
+			if (exportMapPath != null){
+				mapExported = true;	
+			}			
 		}
 	}
 	
 	private void ImportGUI(){
 		if (GUI.Button (new Rect (95, 45, 80, 40), "Import map")){
 			//get any maps in the folder
-			importMapPaths = Directory.GetFiles(mapFolderPath,"*.txt");
+			importMapPaths = Directory.GetFiles(MapIO.GetMapFolderPath(),"*.txt");
 			numMaps = importMapPaths.Length;
 			importMapNames = new string[numMaps];
 			
@@ -201,10 +155,15 @@ public class EditorGUI : MonoBehaviour {
 	}
 	
 	public GameObject GetCurrentObject(){
-		GameObject tile = Resources.Load(tilePath+contentToDisplay[selectionGrid].tooltip) as GameObject;
+		GameObject tile = Resources.Load(MapIO.GetTilePath()+contentToDisplay[selectionGrid].tooltip) as GameObject;
 		if (tile == null){
-			tile = Resources.Load(hazardPath+contentToDisplay[selectionGrid].tooltip) as GameObject;	
+			tile = Resources.Load(MapIO.GetHazardPath()+contentToDisplay[selectionGrid].tooltip) as GameObject;	
 		}
 		return tile;
+	}
+	
+	public Texture GetCurrentPropTexture(){
+		Texture tex = contentToDisplay[selectionGrid].image;
+		return tex;
 	}
 }
