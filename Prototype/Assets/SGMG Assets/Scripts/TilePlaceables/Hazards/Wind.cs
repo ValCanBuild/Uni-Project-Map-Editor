@@ -2,22 +2,19 @@ using UnityEngine;
 using System.Collections;
 
 public enum direction_t{NORTH = 0,EAST,SOUTH,WEST = 3};
-public class Wind : MonoBehaviour
+public class Wind : ITilePlaceable
 {
 	public static int		ContraptionLayer = 1 << 14;
 	
 	public direction_t 		direction;
 	public int				range;
 	
-	public bool				selected = false;
-	
-	ParticleSystem			particleSystem;
+	private ParticleSystem	particleSystem;
 	
 	// Use this for initialization
 	void Start ()
 	{
 		direction = direction_t.EAST;
-		range = 5;
 		GetParticleSystem();
 		particleSystem.startLifetime = 0.3f*range;                                                                                             
 	}
@@ -34,22 +31,7 @@ public class Wind : MonoBehaviour
 	// Update is called once per frame
 	void Update ()
 	{
-		if (Input.GetMouseButton(0)) {
-			if (GUIUtility.hotControl != 0)
-				return;
-			RaycastHit hit;
-	        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-	        if (Physics.Raycast(ray, out hit,float.MaxValue,ContraptionLayer)){      
-	            if (hit.transform == this.transform)
-					selected = true;
-				else{
-					selected = false;	
-				}
-			}
-			else{
-				selected = false;	
-			}
-		}
+
 	}
 	
 	public void SetDirection(direction_t to){

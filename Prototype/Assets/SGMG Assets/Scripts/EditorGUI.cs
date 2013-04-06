@@ -122,7 +122,7 @@ public class EditorGUI : MonoBehaviour {
 		
 		exportMapName = GUI.TextField(new Rect(10,10,100,30),exportMapName);
 		if (GUI.Button (new Rect (10, 45, 80, 40), "Export Map")){
-			exportMapPath = MapIO.ExportMap(exportMapName,controller.mapParent);
+			exportMapPath = MapIO.ExportMap(exportMapName,controller.mapParent,controller.propParent);
 			if (exportMapPath != null){
 				mapExported = true;	
 			}			
@@ -165,5 +165,14 @@ public class EditorGUI : MonoBehaviour {
 	public Texture GetCurrentPropTexture(){
 		Texture tex = contentToDisplay[selectionGrid].image;
 		return tex;
+	}
+	
+	public Texture GetPropTextureForName(string name){
+		foreach (GUIContent content in props){
+			if (name.Contains(content.text)){
+				return content.image;	
+			}
+		}
+		return null;
 	}
 }

@@ -13,13 +13,16 @@ public class TileController : MonoBehaviour {
 	public Texture		unwalkable;
 	
 	public GameObject	startTileIndicator;	
+	public GameObject	endTileIndicator;	
+	
 	private Tile		activeTile;
 	
-	GameObject 			startTile;
-	
+	private GameObject 	startTile;
+	private GameObject	endTile;
 	// Use this for initialization
 	void Start () {
 		startTile = GameObject.FindGameObjectWithTag("StartTile");
+		endTile = GameObject.FindGameObjectWithTag("EndTile");
 		PlaceIndicators();
 	}
 	
@@ -29,6 +32,10 @@ public class TileController : MonoBehaviour {
 			if (GUIUtility.hotControl != 0)
 				return;
 			RaycastHit hit;
+			//deselect the previous tile, if there was one
+			if (activeTile != null){
+				activeTile.TryDeselectObject();	
+			}
 	        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
 			Debug.DrawRay(ray.origin,ray.direction,Color.white);
 	        if (Physics.Raycast(ray, out hit,float.MaxValue,TileEditLayer)){      
@@ -37,8 +44,10 @@ public class TileController : MonoBehaviour {
 			else{
 				activeTile = null;	
 			}
+			//check if we have a tile selected, then check if the tile has a selectable object on it
 			if (activeTile != null){
 				ActiveObjectLight.position = activeTile.transform.position + new Vector3(0,1,0);
+				activeTile.TrySelectObject();
 			}
 			else
 				ActiveObjectLight.position = new Vector3(-100,0,-100);
@@ -66,20 +75,29 @@ public class TileController : MonoBehaviour {
 			}
 				
 		}
+		objects = GameObject.FindGameObjectsWithTag("EndTile");
+		foreach (GameObject tileObj in objects){
+			if (tileObj.active){
+				endTile = tileObj;
+				break;
+			}
+				
+		}
 		PlaceIndicators();
 	}
 	
 	private void PlaceIndicators(){	
 		startTileIndicator.transform.position = startTile.transform.position + new Vector3(0,2.2f,0);
+		endTileIndicator.transform.position = endTile.transform.position + new Vector3(0,0.8f,0);
 	}
 
 	void OnGUI(){
-		if (activeTile == null || activeTile.hazardObject != null){
+		if (activeTile == null || !activeTile.CanBeBuiltOn()){
 			return;
 		}
 		GUI.Label(new Rect(Screen.width-100,20,80,30),"Regular Tile");
 		bool isCracked = activeTile.GetCracked();
-		isCracked = GUI.Toggle(new Rect(Screen.width-100,60,50,30),isCracked,"Crack Tile");
+		isCracked = GUI.Toggle(new Rect(Screen.width-100,60,50,30),isCracked,"Crack");
 		if (isCracked != activeTile.GetCracked()){
 			activeTile.SetCracked(isCracked);	
 		}
@@ -89,6 +107,15 @@ public class TileController : MonoBehaviour {
 			startTile = activeTile.gameObject;
 			PlaceIndicators();
 		}
+		if (GUI.Button(new Rect(Screen.width-100,150,80,40),"Make End")){
+			endTile.tag = "Untagged";
+			activeTile.tag = "EndTile";
+			endTile = activeTile.gameObject;
+			PlaceIndicators();
+		}
+		activeTile.hintEnabled = GUI.Toggle(new Rect(Screen.width-100,200,80,30),activeTile.hintEnabled,"Hint");
+		if (activeTile.hintEnabled)
+			activeTile.hint = GUI.TextArea(new Rect(Screen.width-100,240,90,100),activeTile.hint);
 	}
 
 }
